@@ -1,4 +1,4 @@
-**问题：intellij idea刚装的时候，创建maven项目有resource文件夹**
+**问题：intellij idea刚装的时候，创建maven项目没有resource文件夹**
 
     解决：
         1. 点击File-->project structure
@@ -17,3 +17,7 @@
     1. 点击菜单run-->edit configurations
     2. 点击左上角加号tomcat server-->local
     3. 点击deployment-->加号-->artifact-->war
+    
+**资源提供**
+
+    1. search.maven.org提供的中央仓库地址
