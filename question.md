@@ -44,6 +44,8 @@
     2.复制generator配置文件generatorConfig.xml到resources资源文件夹下
     3.复制属性配置文件datasource.properties到resources资源文件夹下
     ps:generatorConfig.xml文件中定义datasource.properties文件路径
+    4.点击idea右侧mawenprojects->plugins双击mybatis-generator->mybatis-generator:generate生成文件
+    ps:如果plugins下没有mybatis-generator对照pom.xml文件
     
 **资源提供**
 
