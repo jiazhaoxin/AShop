@@ -29,7 +29,7 @@
     2. 点击左上角加号tomcat server-->local
     3. 点击deployment-->加号-->artifact-->war
     
-**mybatis-generator配置**
+**mybatis-generator配置和生成**
 
     1.导入generator
     <plugin>
@@ -46,6 +46,31 @@
     ps:generatorConfig.xml文件中定义datasource.properties文件路径
     4.点击idea右侧mawenprojects->plugins双击mybatis-generator->mybatis-generator:generate生成文件
     ps:如果plugins下没有mybatis-generator对照pom.xml文件
+    5.在生成的xml文件中修改生成时间和修改时间时间字段
+    
+**安装mybatis-plugin插件**
+    
+    1.点击file->settings->plugins搜索mybatis-plugins安装
+    
+**mybatis-pagehelper分页插件**
+
+    1.导入依赖
+    <dependency>
+          <groupId>com.github.pagehelper</groupId>
+          <artifactId>pagehelper</artifactId>
+          <version>4.1.0</version>
+        </dependency>
+        <dependency>
+          <groupId>com.github.miemiedev</groupId>
+          <artifactId>mybatis-paginator</artifactId>
+          <version>1.2.17</version>
+        </dependency>
+        <dependency>
+          <groupId>com.github.jsqlparser</groupId>
+          <artifactId>jsqlparser</artifactId>
+          <version>0.9.4</version>
+        </dependency>
+        ps:可在github上查看使用详情
     
 **资源提供**
 
