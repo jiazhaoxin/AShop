@@ -12,11 +12,38 @@
         1. src文件夹下main同级新建test文件夹
         2. test文件夹下新建java文件夹，java文件夹右键点击mark directory as-->test source root
         
+**2. 项目结构包初始化**
+
+        java文件夹下生成com.shop文件夹在此文件夹下生成
+        1.dao文件夹
+        2.service文件夹
+        3.controller文件夹
+        4.vo文件夹
+        5.pojo文件夹
+        6.util文件夹
+        7.common文件夹
+        
 **使用tomcat运行项目**
 
     1. 点击菜单run-->edit configurations
     2. 点击左上角加号tomcat server-->local
     3. 点击deployment-->加号-->artifact-->war
+    
+**mybatis-generator配置**
+
+    1.导入generator
+    <plugin>
+       <groupId>org.mybatis.generator</groupId>
+       <artifactId>mybatis-generator-maven-plugin</artifactId>
+       <version>1.3.2</version>
+       <configuration>
+         <verbose>true</verbose>
+         <overwrite>true</overwrite>
+       </configuration>
+    </plugin>
+    2.复制generator配置文件generatorConfig.xml到resources资源文件夹下
+    3.复制属性配置文件datasource.properties到resources资源文件夹下
+    ps:generatorConfig.xml文件中定义datasource.properties文件路径
     
 **资源提供**
 
