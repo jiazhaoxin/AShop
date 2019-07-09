@@ -56,21 +56,33 @@
 
     1.导入依赖
     <dependency>
-          <groupId>com.github.pagehelper</groupId>
-          <artifactId>pagehelper</artifactId>
-          <version>4.1.0</version>
-        </dependency>
-        <dependency>
-          <groupId>com.github.miemiedev</groupId>
-          <artifactId>mybatis-paginator</artifactId>
-          <version>1.2.17</version>
-        </dependency>
-        <dependency>
-          <groupId>com.github.jsqlparser</groupId>
-          <artifactId>jsqlparser</artifactId>
-          <version>0.9.4</version>
-        </dependency>
-        ps:可在github上查看使用详情
+      <groupId>com.github.pagehelper</groupId>
+      <artifactId>pagehelper</artifactId>
+      <version>4.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.miemiedev</groupId>
+      <artifactId>mybatis-paginator</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.jsqlparser</groupId>
+      <artifactId>jsqlparser</artifactId>
+      <version>0.9.4</version>
+    </dependency>
+    ps:可在github上查看使用详情
+        
+**springmvc配置**
+
+    复制一下文件到指定文件夹下
+    resources文件夹下
+    1.applicationContext.xml(在web.xml中指定此配置文件)
+    2.applicationContext-datasource.xml（在applicationContext.xml中指定此文件）
+    3.mmall.properties
+    webapp->WEB-INF文件夹下
+    4.dispatcher-servlet.xml(web.xml中指定此文件，如果没指定则使用默认此路径下的此文件名，此示例没指定)
+    5.web.xml
+    
     
 **资源提供**
 
