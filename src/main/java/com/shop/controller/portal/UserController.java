@@ -35,4 +35,78 @@ public class UserController {
         }
         return response;
     }
+
+    /**
+     * 用户退出
+     * @param httpSession
+     * @return
+     */
+    @RequestMapping(value = "logout.do", method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<String> logout(HttpSession httpSession){
+        httpSession.removeAttribute(Const.CURRENT_USER);
+        return ServerResponse.createBySuccess();
+    }
+
+    /**
+     * 用户注册
+     * @param user
+     * @return
+     */
+    @RequestMapping(value = "register.do", method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<String> register(User user){
+        return iUserService.register(user);
+    }
+
+    /**
+     * 校验用户名和邮箱是否存在
+     * @param str
+     * @param type
+     * @return
+     */
+    @RequestMapping(value = "checkValid.do", method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<String> checkValid(String str, String type){
+        return iUserService.checkValid(str, type);
+    }
+
+    /**
+     * 获取用户登陆信息
+     * @param httpSession
+     * @return
+     */
+    @RequestMapping(value = "getUserInfo.do", method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<User> getUserInfo(HttpSession httpSession){
+        User user = (User) httpSession.getAttribute(Const.CURRENT_USER);
+        if (user != null){
+            return ServerResponse.createBySuccess(user);
+        }
+        return ServerResponse.createByErrorMessage("未登陆，请登录");
+    }
+
+    /**
+     * 忘记密码 查找此用户是否有问题
+     * @param username
+     * @return
+     */
+    @RequestMapping(value = "forgetGetQuestion.do", method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<String> forgetGetQuestion(String username){
+        return iUserService.selectQuestion(username);
+    }
+
+    /**
+     * 忘记密码 查找此用户答案是否正确
+     * @param username
+     * @param question
+     * @param answer
+     * @return
+     */
+    @RequestMapping(value = "forgetCheckAnswer.do", method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<String> forgetCheckAnswer(String username, String question, String answer){
+        return iUserService.checkAnswer(username, question, answer);
+    }
 }

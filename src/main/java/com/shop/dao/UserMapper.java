@@ -18,5 +18,11 @@ public interface UserMapper {
 
     int checkUsername(String username);//检查用户名是否存在
 
+    int checkEmail(String email);//检查邮箱是否存在
+
     User selectLogin(@Param("username") String username, @Param("password") String password);
+
+    String selectQuestionByUsername(String username);
+
+    int checkAnswer(@Param("username") String username, @Param("question") String question, @Param("answer") String answer);
 }
