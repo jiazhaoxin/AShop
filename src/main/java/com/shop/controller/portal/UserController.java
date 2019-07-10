@@ -122,4 +122,43 @@ public class UserController {
     public ServerResponse<String> forgetResetPassword(String username, String newPassword, String forgetToken){
         return iUserService.forgetResetPassword(username, newPassword, forgetToken);
     }
+
+    /**
+     * 修改密码
+     * @param httpSession
+     * @param oldPassword
+     * @param newPassword
+     * @return
+     */
+    @RequestMapping(value = "resetPassword.do", method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<String> resetPassword(HttpSession httpSession, String oldPassword, String newPassword){
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            return ServerResponse.createByErrorMessage("未登陆，请登录");
+        }
+        return iUserService.resetPassword(user, oldPassword, newPassword);
+    }
+
+    /**
+     * 更新用户信息
+     * @param httpSession
+     * @param user
+     * @return
+     */
+    @RequestMapping(value = "updateInformation.do", method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<User> updateInformation(HttpSession httpSession, User user){
+        User currentUser = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (currentUser == null){
+            return ServerResponse.createByErrorMessage("未登陆，请登录");
+        }
+        user.setId(currentUser.getId());//传过来的user没有id
+        user.setUsername(currentUser.getUsername());
+        ServerResponse<User> response = iUserService.updateInformation(user);
+        if (response.isSuccess()){
+            httpSession.setAttribute(Const.CURRENT_USER, response.getData());
+        }
+        return response;
+    }
 }
