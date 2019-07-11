@@ -42,7 +42,7 @@ public class UserController {
      * @param httpSession
      * @return
      */
-    @RequestMapping(value = "logout.do", method = RequestMethod.GET)
+    @RequestMapping(value = "logout.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> logout(HttpSession httpSession){
         httpSession.removeAttribute(Const.CURRENT_USER);
@@ -54,7 +54,7 @@ public class UserController {
      * @param user
      * @return
      */
-    @RequestMapping(value = "register.do", method = RequestMethod.GET)
+    @RequestMapping(value = "register.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> register(User user){
         return iUserService.register(user);
@@ -66,7 +66,7 @@ public class UserController {
      * @param type
      * @return
      */
-    @RequestMapping(value = "checkValid.do", method = RequestMethod.GET)
+    @RequestMapping(value = "checkValid.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> checkValid(String str, String type){
         return iUserService.checkValid(str, type);
@@ -77,7 +77,7 @@ public class UserController {
      * @param httpSession
      * @return
      */
-    @RequestMapping(value = "getUserInfo.do", method = RequestMethod.GET)
+    @RequestMapping(value = "getUserInfo.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<User> getUserInfo(HttpSession httpSession){
         User user = (User) httpSession.getAttribute(Const.CURRENT_USER);
@@ -92,7 +92,7 @@ public class UserController {
      * @param username
      * @return
      */
-    @RequestMapping(value = "forgetGetQuestion.do", method = RequestMethod.GET)
+    @RequestMapping(value = "forgetGetQuestion.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> forgetGetQuestion(String username){
         return iUserService.selectQuestion(username);
@@ -105,7 +105,7 @@ public class UserController {
      * @param answer
      * @return
      */
-    @RequestMapping(value = "forgetCheckAnswer.do", method = RequestMethod.GET)
+    @RequestMapping(value = "forgetCheckAnswer.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> forgetCheckAnswer(String username, String question, String answer){
         return iUserService.checkAnswer(username, question, answer);
@@ -118,7 +118,7 @@ public class UserController {
      * @param forgetToken
      * @return
      */
-    @RequestMapping(value = "forgetResetPassword.do", method = RequestMethod.GET)
+    @RequestMapping(value = "forgetResetPassword.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> forgetResetPassword(String username, String newPassword, String forgetToken){
         return iUserService.forgetResetPassword(username, newPassword, forgetToken);
@@ -131,7 +131,7 @@ public class UserController {
      * @param newPassword
      * @return
      */
-    @RequestMapping(value = "resetPassword.do", method = RequestMethod.GET)
+    @RequestMapping(value = "resetPassword.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<String> resetPassword(HttpSession httpSession, String oldPassword, String newPassword){
         User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
@@ -147,7 +147,7 @@ public class UserController {
      * @param user
      * @return
      */
-    @RequestMapping(value = "updateInformation.do", method = RequestMethod.GET)
+    @RequestMapping(value = "updateInformation.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<User> updateInformation(HttpSession httpSession, User user){
         User currentUser = (User)httpSession.getAttribute(Const.CURRENT_USER);
@@ -168,7 +168,7 @@ public class UserController {
      * @param httpSession
      * @return
      */
-    @RequestMapping(value = "getInformation.do", method = RequestMethod.GET)
+    @RequestMapping(value = "getInformation.do", method = RequestMethod.POST)
     @ResponseBody
     public ServerResponse<User> getInformation(HttpSession httpSession){
         User currentUser = (User)httpSession.getAttribute(Const.CURRENT_USER);
