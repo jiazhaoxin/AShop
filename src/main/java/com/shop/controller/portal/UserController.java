@@ -1,6 +1,7 @@
 package com.shop.controller.portal;
 
 import com.shop.common.Const;
+import com.shop.common.ResponseCode;
 import com.shop.common.ServerResponse;
 import com.shop.pojo.User;
 import com.shop.service.IUserService;
@@ -160,5 +161,20 @@ public class UserController {
             httpSession.setAttribute(Const.CURRENT_USER, response.getData());
         }
         return response;
+    }
+
+    /**
+     * 获取用户信息
+     * @param httpSession
+     * @return
+     */
+    @RequestMapping(value = "getInformation.do", method = RequestMethod.GET)
+    @ResponseBody
+    public ServerResponse<User> getInformation(HttpSession httpSession){
+        User currentUser = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (currentUser == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "用户未登陆，需要登陆");
+        }
+        return iUserService.getInformation(currentUser.getId());
     }
 }
