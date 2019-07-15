@@ -19,6 +19,12 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private UserMapper userMapper;
 
+    /**
+     * 用户登陆
+     * @param username
+     * @param password
+     * @return
+     */
     @Override
     public ServerResponse<User> login(String username, String password) {
         int userCount = userMapper.checkUsername(username);
@@ -33,6 +39,11 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createBySuccess("登录成功", user);
     }
 
+    /**
+     * 用户注册
+     * @param user
+     * @return
+     */
     @Override
     public ServerResponse<String> register(User user) {
         ServerResponse validResponse = this.checkValid(user.getUsername(), Const.USERNAME);
@@ -54,6 +65,12 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createBySuccessMessage("注册成功");
     }
 
+    /**
+     * 效验用户名或密码是否已存在
+     * @param str
+     * @param type
+     * @return
+     */
     @Override
     public ServerResponse<String> checkValid(String str, String type) {
         if (StringUtils.isNotBlank(type)){
@@ -75,6 +92,11 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createBySuccessMessage("校验成功");
     }
 
+    /**
+     * 查询用户下的问题
+     * @param username
+     * @return
+     */
     @Override
     public ServerResponse<String> selectQuestion(String username) {
         ServerResponse validResponse = this.checkValid(username, Const.USERNAME);
@@ -88,6 +110,13 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createByErrorMessage("问题不存在");
     }
 
+    /**
+     * 验证用户答案
+     * @param username
+     * @param question
+     * @param answer
+     * @return
+     */
     @Override
     public ServerResponse<String> checkAnswer(String username, String question, String answer) {
         int answerCount = userMapper.checkAnswer(username, question, answer);
@@ -99,6 +128,13 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createByErrorMessage("答案错误");
     }
 
+    /**
+     * 使用token找回重置新密码
+     * @param username
+     * @param newPassword
+     * @param forgetToken
+     * @return
+     */
     public ServerResponse<String> forgetResetPassword(String username, String newPassword, String forgetToken){
         if (StringUtils.isBlank(forgetToken)){
             return ServerResponse.createByErrorMessage("token错误，token是空");
@@ -123,6 +159,13 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createByErrorMessage("修改密码失败");
     }
 
+    /**
+     * 修改密码
+     * @param user
+     * @param oldPassword
+     * @param newPassword
+     * @return
+     */
     public ServerResponse<String> resetPassword(User user, String oldPassword, String newPassword){
         //防止横向越权 检验密码与id是否匹配
         int passwordCount = userMapper.checkPassword(oldPassword, user.getId());
@@ -137,6 +180,11 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createByErrorMessage("密码更新失败");
     }
 
+    /**
+     * 更新用户信息
+     * @param user
+     * @return
+     */
     public ServerResponse<User> updateInformation(User user){
         //用户名不能更改
         //email需要校验其他用户是否使用
@@ -157,6 +205,11 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createByErrorMessage("更新个人信息失败");
     }
 
+    /**
+     * 获取用户信息
+     * @param userId
+     * @return
+     */
     public ServerResponse<User> getInformation(Integer userId){
         User user = userMapper.selectByPrimaryKey(userId);
         if (user == null){
@@ -166,6 +219,11 @@ public class UserServiceImpl implements IUserService {
         return ServerResponse.createBySuccess(user);
     }
 
+    /**
+     * 检查用户是否是管理员权限
+     * @param user
+     * @return
+     */
     public ServerResponse checkAdminRole(User user){
         if (user != null && user.getRole().intValue() == Const.Role.ROLE_ADMIN){
             return ServerResponse.createBySuccess();

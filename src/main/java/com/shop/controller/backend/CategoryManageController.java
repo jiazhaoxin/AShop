@@ -68,4 +68,48 @@ public class CategoryManageController {
             return ServerResponse.createByErrorMessage("需要管理员权限");
         }
     }
+
+    /**
+     * 查找当前分类下的下级分类
+     * @param httpSession
+     * @param categoryId
+     * @return
+     */
+    @RequestMapping(value = "getChildrenParallelCategory.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse getChildrenParallelCategory(HttpSession httpSession, @RequestParam(value = "categoryId", defaultValue = "0") Integer categoryId){
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登录");
+        }
+        //校验用户权限
+        if (iUserService.checkAdminRole(user).isSuccess()){
+            //查询子节点的category信息，不递归，保护平级信息
+            return iCategoryService.getChildrenParallelCategory(categoryId);
+        }else {
+            return ServerResponse.createByErrorMessage("需要管理员权限");
+        }
+    }
+
+    /**
+     * 查找此节点所有下级节点
+     * @param httpSession
+     * @param categoryId
+     * @return
+     */
+    @RequestMapping(value = "getCategoryAndDeepChildrenCategory.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse getCategoryAndDeepChildrenCategory(HttpSession httpSession, @RequestParam(value = "categoryId", defaultValue = "0") Integer categoryId){
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登录");
+        }
+        //校验用户权限
+        if (iUserService.checkAdminRole(user).isSuccess()){
+            //查询当前节点id和递归查找下级节点
+            return iCategoryService.getChildrenParallelCategory(categoryId);
+        }else {
+            return ServerResponse.createByErrorMessage("需要管理员权限");
+        }
+    }
 }
