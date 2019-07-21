@@ -1,5 +1,7 @@
 package com.shop.service.impl;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.shop.common.ServerResponse;
 import com.shop.dao.CategoryMapper;
 import com.shop.pojo.Category;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service("iCategoryService")
 public class CategoryServiceImpl implements ICategoryService {
@@ -80,11 +83,35 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     /**
-     * 查找此节点所有下级节点
+     * 查找此节点所有下级节点 id
      * @param categoryId
      * @return
      */
     public ServerResponse getCategoryAndDeepChildrenCategory(Integer categoryId){
-        return null;
+        Set<Category> categorySet = Sets.newHashSet();
+        findChildCategory(categorySet, categoryId);
+
+        List<Integer> categoryIdList = Lists.newArrayList();//存放节点id列表
+        if (categoryId != null){
+            for (Category categoryItem : categorySet) {
+                categoryIdList.add(categoryItem.getId());
+            }
+        }
+        return ServerResponse.createBySuccess(categoryIdList);
+    }
+
+    //递归 递归是自己调自己 使用set是因为能排重 但是Category不是String这种基本类型因此要排重需重写hashcade
+    private Set<Category> findChildCategory(Set<Category> categorySet, Integer categoryId){
+        Category category = categoryMapper.selectByPrimaryKey(categoryId);
+        if (category != null){
+            categorySet.add(category);
+        }
+        //查找子节点 递归算法一定要有一个退出条件
+        //这里退出条件是子节点为空
+        List<Category> categoryList = categoryMapper.selectCategoryChildrenByParentId(categoryId);//查询此分类下所有子节点
+        for (Category categoryItem: categoryList) {
+            findChildCategory(categorySet, categoryItem.getId());
+        }
+        return categorySet;
     }
 }

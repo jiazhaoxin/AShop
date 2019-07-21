@@ -1,6 +1,7 @@
 package com.shop.pojo;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class Category {
     private Integer id;
@@ -85,5 +86,20 @@ public class Category {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    //这里排重使用 排重方法id相同则相同
+    //重写快捷键 alt+insert键 选择equals() and hashCode()后选择id
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Category category = (Category) o;
+        return Objects.equals(id, category.id);
+    }
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id);
     }
 }

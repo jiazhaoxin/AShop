@@ -107,7 +107,7 @@ public class CategoryManageController {
         //校验用户权限
         if (iUserService.checkAdminRole(user).isSuccess()){
             //查询当前节点id和递归查找下级节点
-            return iCategoryService.getChildrenParallelCategory(categoryId);
+            return iCategoryService.getCategoryAndDeepChildrenCategory(categoryId);
         }else {
             return ServerResponse.createByErrorMessage("需要管理员权限");
         }
