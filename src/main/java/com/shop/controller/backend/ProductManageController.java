@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
@@ -89,6 +90,29 @@ public class ProductManageController {
         if (iUserService.checkAdminRole(user).isSuccess()){
             //获取商品详情业务逻辑
             return iProductService.manageProductDetail(productId);
+        }else {
+            return ServerResponse.createByErrorMessage("需要管理员权限");
+        }
+    }
+
+    /**
+     * 产品列表 带分页
+     * @param httpSession
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    @RequestMapping(value = "list.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse list(HttpSession httpSession, @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum, @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize){
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登录");
+        }
+        //校验用户权限
+        if (iUserService.checkAdminRole(user).isSuccess()){
+            //获取商品详情业务逻辑
+            return iProductService.getProductList(pageNum, pageSize);
         }else {
             return ServerResponse.createByErrorMessage("需要管理员权限");
         }

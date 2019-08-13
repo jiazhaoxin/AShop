@@ -1,5 +1,6 @@
 package com.shop.service;
 
+import com.github.pagehelper.PageInfo;
 import com.shop.common.ServerResponse;
 import com.shop.pojo.Product;
 import com.shop.vo.ProductDetailVo;
@@ -14,4 +15,6 @@ public interface IProductService {
     ServerResponse setSaleStatus(Integer productId, Integer status);
 
     ServerResponse<ProductDetailVo> manageProductDetail(Integer productId);
+
+    ServerResponse<PageInfo> getProductList(Integer pageNum, Integer pageSize);
 }
