@@ -2,9 +2,14 @@ package com.shop.service.impl;
 
 import com.shop.common.ResponseCode;
 import com.shop.common.ServerResponse;
+import com.shop.dao.CategoryMapper;
 import com.shop.dao.ProductMapper;
+import com.shop.pojo.Category;
 import com.shop.pojo.Product;
 import com.shop.service.IProductService;
+import com.shop.util.DateTimeUtil;
+import com.shop.util.PropertiesUtil;
+import com.shop.vo.ProductDetailVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +22,8 @@ public class ProductServiceImpl implements IProductService {
 
     @Autowired
     private ProductMapper productMapper;
+    @Autowired
+    private CategoryMapper categoryMapper;
 
     /**
      * 添加或更新产品
@@ -68,5 +75,53 @@ public class ProductServiceImpl implements IProductService {
             return ServerResponse.createBySuccessMessage("修改产品销售状态成功");
         }
         return ServerResponse.createByErrorMessage("修改产品销售状态失败");
+    }
+
+    /**
+     * 获取产品详情
+     * @param productId
+     * @return
+     */
+    public ServerResponse<ProductDetailVo> manageProductDetail(Integer productId){
+        if (productId == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(), ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        }
+        Product product = productMapper.selectByPrimaryKey(productId);
+        if (product == null){
+            return ServerResponse.createByErrorMessage("产品已下架或者删除");
+        }
+        ProductDetailVo productDetailVo = assembleProductDetailVo(product);
+        return ServerResponse.createBySuccess(productDetailVo);
+    }
+
+    /**
+     * 多个类组合成一个新的产品详情类
+     * @param product
+     * @return
+     */
+    private ProductDetailVo assembleProductDetailVo(Product product){
+        ProductDetailVo productDetailVo = new ProductDetailVo();
+        productDetailVo.setId(product.getId());
+        productDetailVo.setName(product.getName());
+        productDetailVo.setCategoryId(product.getCategoryId());
+        productDetailVo.setSubtitle(product.getSubtitle());
+        productDetailVo.setMainImage(product.getMainImage());
+        productDetailVo.setSubImage(product.getSubImages());
+        productDetailVo.setDetail(product.getDetail());
+        productDetailVo.setPrice(product.getPrice());
+        productDetailVo.setStock(product.getStock());
+        productDetailVo.setStatus(product.getStatus());
+        productDetailVo.setCreateTime(DateTimeUtil.dateToStr(product.getCreateTime()));
+        productDetailVo.setUpdateTime(DateTimeUtil.dateToStr(product.getUpdateTime()));
+
+        productDetailVo.setImageHost(PropertiesUtil.getProperty("ftp.server.http.prefix", "http://img.happymmall.com/"));
+        Category category = categoryMapper.selectByPrimaryKey(product.getCategoryId());
+        if (category == null){
+            productDetailVo.setParentCategoryId(0);
+        }else {
+            productDetailVo.setParentCategoryId(category.getParentId());
+        }
+
+        return productDetailVo;
     }
 }
