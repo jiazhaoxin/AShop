@@ -117,4 +117,29 @@ public class ProductManageController {
             return ServerResponse.createByErrorMessage("需要管理员权限");
         }
     }
+
+    /**
+     * 产品搜索 带分页
+     * @param httpSession
+     * @param productName
+     * @param productId
+     * @param pageNum
+     * @param pageSize
+     * @return
+     */
+    @RequestMapping(value = "search.do", method = RequestMethod.POST)
+    @ResponseBody
+    public ServerResponse search(HttpSession httpSession, String productName, Integer productId, @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum, @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize){
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登录");
+        }
+        //校验用户权限
+        if (iUserService.checkAdminRole(user).isSuccess()){
+            //获取商品详情业务逻辑
+            return iProductService.searchProduct(productName, productId, pageNum, pageSize);
+        }else {
+            return ServerResponse.createByErrorMessage("需要管理员权限");
+        }
+    }
 }
