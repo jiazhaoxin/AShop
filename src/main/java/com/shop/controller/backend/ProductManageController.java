@@ -10,6 +10,7 @@ import com.shop.service.IFileService;
 import com.shop.service.IProductService;
 import com.shop.service.IUserService;
 import com.shop.util.PropertiesUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.util.Map;
 
@@ -177,6 +179,47 @@ public class ProductManageController {
             return ServerResponse.createBySuccess(file);
         }else {
             return ServerResponse.createByErrorMessage("需要管理员权限");
+        }
+    }
+
+    /**
+     * 富文本上传文件
+     * @param httpSession
+     * @param file
+     * @param request
+     * @param response
+     * @return
+     */
+    @RequestMapping(value = "richTextImgUpload.do")
+    @ResponseBody
+    public Map richTextImgUpload(HttpSession httpSession, MultipartFile file, HttpServletRequest request, HttpServletResponse response){
+        Map resultMap = Maps.newHashMap();
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            resultMap.put("success", false);
+            resultMap.put("msg", "请登录管理员");
+            return resultMap;
+        }
+        //富文本中对返回值有自己的要求，示例simditor富文本
+        //校验用户权限
+        if (iUserService.checkAdminRole(user).isSuccess()){
+            String path = request.getSession().getServletContext().getRealPath("upload");
+            String targetFileName = iFileService.upload(file, path);
+            if (StringUtils.isBlank(targetFileName)){
+                resultMap.put("success", false);
+                resultMap.put("msg", "上传失败");
+                return resultMap;
+            }
+            String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFileName;
+            resultMap.put("success", true);
+            resultMap.put("msg", "上传成功");
+            resultMap.put("file_path", url);
+            response.addHeader("Access-Control-Allow-Headers", "X-File-Name");//simditor文档中要求
+            return resultMap;
+        }else {
+            resultMap.put("success", false);
+            resultMap.put("msg", "需要管理员权限");
+            return resultMap;
         }
     }
 }
