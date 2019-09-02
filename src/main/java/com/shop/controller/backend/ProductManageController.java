@@ -1,20 +1,26 @@
 package com.shop.controller.backend;
 
+import com.google.common.collect.Maps;
 import com.shop.common.Const;
 import com.shop.common.ResponseCode;
 import com.shop.common.ServerResponse;
 import com.shop.pojo.Product;
 import com.shop.pojo.User;
+import com.shop.service.IFileService;
 import com.shop.service.IProductService;
 import com.shop.service.IUserService;
+import com.shop.util.PropertiesUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Map;
 
 /**
  * Created by admin on 2019/7/22.
@@ -27,6 +33,8 @@ public class ProductManageController {
     private IUserService iUserService;
     @Autowired
     private IProductService iProductService;
+    @Autowired
+    private IFileService iFileService;
 
     /**
      * 添加产品
@@ -138,6 +146,35 @@ public class ProductManageController {
         if (iUserService.checkAdminRole(user).isSuccess()){
             //获取商品详情业务逻辑
             return iProductService.searchProduct(productName, productId, pageNum, pageSize);
+        }else {
+            return ServerResponse.createByErrorMessage("需要管理员权限");
+        }
+    }
+
+    /**
+     * 文件上传
+     * @param httpSession
+     * @param file
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "upload.do")
+    @ResponseBody
+    public ServerResponse upload(HttpSession httpSession, MultipartFile file, HttpServletRequest request){
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登录");
+        }
+        //校验用户权限
+        if (iUserService.checkAdminRole(user).isSuccess()){
+            String path = request.getSession().getServletContext().getRealPath("upload");
+            String targetFileName = iFileService.upload(file, path);
+            String url = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFileName;
+
+            Map fileMap = Maps.newHashMap();
+            fileMap.put("uri", targetFileName);
+            fileMap.put("url", url);
+            return ServerResponse.createBySuccess(file);
         }else {
             return ServerResponse.createByErrorMessage("需要管理员权限");
         }

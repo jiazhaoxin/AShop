@@ -44,8 +44,8 @@ public class FTPUtil {
                 ftpClient.changeWorkingDirectory(remotePath);
                 ftpClient.setBufferSize(1024);
                 ftpClient.setControlEncoding("UTF-8");
-                ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
-                ftpClient.enterLocalPassiveMode();
+                ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);//设置文件类型
+                ftpClient.enterLocalPassiveMode();//打开本地的被动模式
                 for(File fileItem : fileList){
                     fis = new FileInputStream(fileItem);
                     ftpClient.storeFile(fileItem.getName(),fis);
@@ -55,7 +55,7 @@ public class FTPUtil {
                 logger.error("上传文件异常",e);
                 uploaded = false;
                 e.printStackTrace();
-            } finally {
+            } finally {//释放连接
                 fis.close();
                 ftpClient.disconnect();
             }
