@@ -87,7 +87,7 @@ public class CategoryServiceImpl implements ICategoryService {
      * @param categoryId
      * @return
      */
-    public ServerResponse getCategoryAndDeepChildrenCategory(Integer categoryId){
+    public ServerResponse<List<Integer>> getCategoryAndDeepChildrenCategory(Integer categoryId){
         Set<Category> categorySet = Sets.newHashSet();
         findChildCategory(categorySet, categoryId);
 

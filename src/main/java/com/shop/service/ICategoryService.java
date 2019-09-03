@@ -2,6 +2,8 @@ package com.shop.service;
 
 import com.shop.common.ServerResponse;
 
+import java.util.List;
+
 public interface ICategoryService {
 
     ServerResponse addCategory(String categoryName, Integer parentId);
@@ -10,5 +12,5 @@ public interface ICategoryService {
 
     ServerResponse getChildrenParallelCategory(Integer categoryId);
 
-    ServerResponse getCategoryAndDeepChildrenCategory(Integer categoryId);
+    ServerResponse<List<Integer>> getCategoryAndDeepChildrenCategory(Integer categoryId);
 }
