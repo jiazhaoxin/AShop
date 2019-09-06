@@ -243,7 +243,7 @@ public class ProductServiceImpl implements IProductService {
                 return ServerResponse.createBySuccess(pageInfo);
             }
 
-            categoryIdList = iCategoryService.getCategoryAndDeepChildrenCategory(category.getId()).getData();
+            categoryIdList = iCategoryService.getCategoryAndDeepChildrenCategory(categoryId).getData();
         }
 
         if (StringUtils.isNotBlank(keyword)){
