@@ -101,7 +101,7 @@ public class ProductManageController {
             //获取商品详情业务逻辑
             return iProductService.manageProductDetail(productId);
         }else {
-            return ServerResponse.createByErrorMessage("需要管理员权限");
+            return ServerResponse.createByErrorMessage("需要管理员权限1");
         }
     }
 
