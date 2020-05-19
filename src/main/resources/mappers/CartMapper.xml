@@ -149,4 +149,19 @@
       </foreach>
     </if>
   </delete>
+
+  <update id="selectOrUnSelect" parameterType="int">
+    UPDATE mmall_cart
+    set checked = #{checked},
+    update_time = now()
+    where user_id = #{userId}
+    <if test="productId != null">
+      and product_id = #{productId}
+    </if>
+  </update>
+
+  <select id="selectCartProductCount" parameterType="int" resultType="int">
+    SELECT IFNULL(SUM(quantity),0) as count FROM mmall_cart
+    WHERE user_id = #{userId}
+  </select>
 </mapper>
