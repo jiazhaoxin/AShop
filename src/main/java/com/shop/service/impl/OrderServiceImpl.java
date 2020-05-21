@@ -1,10 +1,17 @@
 package com.shop.service.impl;
 
+import com.alipay.api.AlipayResponse;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
+import com.alipay.demo.trade.config.Configs;
 import com.alipay.demo.trade.model.ExtendParams;
 import com.alipay.demo.trade.model.GoodsDetail;
 import com.alipay.demo.trade.model.builder.AlipayTradePrecreateRequestBuilder;
 import com.alipay.demo.trade.model.result.AlipayF2FPrecreateResult;
+import com.alipay.demo.trade.service.AlipayTradeService;
+import com.alipay.demo.trade.service.impl.AlipayTradeServiceImpl;
+import com.alipay.demo.trade.utils.ZxingUtils;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.shop.common.ServerResponse;
 import com.shop.dao.OrderItemMapper;
 import com.shop.dao.OrderMapper;
@@ -12,11 +19,19 @@ import com.shop.pojo.Order;
 import com.shop.pojo.OrderItem;
 import com.shop.service.IOrderService;
 import com.shop.util.BigDecimalUtil;
+import com.shop.util.FTPUtil;
+import com.shop.util.PropertiesUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by admin on 2020/5/21.
@@ -24,16 +39,23 @@ import java.util.List;
 @Service("iOrderService")
 public class OrderServiceImpl implements IOrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
+
     @Autowired
     private OrderMapper orderMapper;
     @Autowired
     private OrderItemMapper orderItemMapper;
 
-    public ServerResponse pay(Integer userId, Integer orderNo, String path){
+    public ServerResponse pay(Integer userId, Long orderNo, String path){
+
+        Map<String, String> resultMap = Maps.newHashMap();
+
         Order order = orderMapper.selectByUserIdAndOrderNo(userId, orderNo);
         if (order == null){
             return ServerResponse.createBySuccessMessage("没有此订单");
         }
+
+        resultMap.put("orderNo", order.getOrderNo().toString());
 
         // (必填) 商户网站订单系统中唯一订单号，64个字符以内，只能包含字母、数字、下划线，
         // 需保证商户系统端不能重复，建议通过数据库sequence生成，
@@ -96,8 +118,18 @@ public class OrderServiceImpl implements IOrderService {
                 .setUndiscountableAmount(undiscountableAmount).setSellerId(sellerId).setBody(body)
                 .setOperatorId(operatorId).setStoreId(storeId).setExtendParams(extendParams)
                 .setTimeoutExpress(timeoutExpress)
-                //                .setNotifyUrl("http://www.test-notify-url.com")//支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置
+                .setNotifyUrl(PropertiesUtil.getProperty("alipay.callback.url"))//支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置，沙箱环境设置地址：https://openhome.alipay.com/platform/appDaily.htm?tab=info
                 .setGoodsDetailList(goodsDetailList);
+
+        /** 一定要在创建AlipayTradeService之前调用Configs.init()设置默认参数
+         *  Configs会读取classpath下的zfbinfo.properties文件配置信息，如果找不到该文件则确认该文件是否在classpath目录
+         */
+        Configs.init("zfbinfo.properties");
+
+        /** 使用Configs提供的默认参数
+         *  AlipayTradeService可以使用单例或者为静态成员对象，不需要反复new
+         */
+        AlipayTradeService tradeService = new AlipayTradeServiceImpl.ClientBuilder().build();
 
         AlipayF2FPrecreateResult result = tradeService.tradePrecreate(builder);
         switch (result.getTradeStatus()) {
@@ -107,25 +139,50 @@ public class OrderServiceImpl implements IOrderService {
                 AlipayTradePrecreateResponse response = result.getResponse();
                 dumpResponse(response);
 
-                // 需要修改为运行机器上的路径
-                String filePath = String.format("/Users/sudo/Desktop/qr-%s.png",
-                        response.getOutTradeNo());
-                log.info("filePath:" + filePath);
-                //                ZxingUtils.getQRCodeImge(response.getQrCode(), 256, filePath);
-                break;
+                //没有此文件则创建
+                File folder = new File(path);
+                if (!folder.exists()){
+                    folder.setWritable(true);
+                    folder.mkdirs();
+                }
+
+                String qrName = String.format("qr-%s.png", response.getOutTradeNo());
+                String qrPath = String.format("%s/%s", path, qrName);
+                ZxingUtils.getQRCodeImge(response.getQrCode(), 256, qrPath);
+                log.info("filePath:" + qrPath);
+
+                File targetFile = new File(path, qrName);
+                try {
+                    FTPUtil.uploadFile(Lists.newArrayList(targetFile));
+                } catch (IOException e) {
+                    log.error("上传二维码错误", e);
+                }
+                String qrUrl = PropertiesUtil.getProperty("ftp.server.http.prefix") + targetFile.getName();
+                resultMap.put("qrUrl", qrUrl);
+                return ServerResponse.createBySuccess(response);
 
             case FAILED:
                 log.error("支付宝预下单失败!!!");
-                break;
+                return ServerResponse.createByErrorMessage("支付宝预下单失败!!!");
 
             case UNKNOWN:
                 log.error("系统异常，预下单状态未知!!!");
-                break;
-
+                return ServerResponse.createByErrorMessage("系统异常，预下单状态未知!!!");
             default:
                 log.error("不支持的交易状态，交易返回异常!!!");
-                break;
+                return ServerResponse.createByErrorMessage("不支持的交易状态，交易返回异常!!!");
         }
-        return null;
+    }
+
+    // 简单打印应答
+    private void dumpResponse(AlipayResponse response) {
+        if (response != null) {
+            log.info(String.format("code:%s, msg:%s", response.getCode(), response.getMsg()));
+            if (StringUtils.isNotEmpty(response.getSubCode())) {
+                log.info(String.format("subCode:%s, subMsg:%s", response.getSubCode(),
+                        response.getSubMsg()));
+            }
+            log.info("body:" + response.getBody());
+        }
     }
 }
