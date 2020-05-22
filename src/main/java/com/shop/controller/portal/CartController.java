@@ -25,7 +25,7 @@ public class CartController {
 
     @RequestMapping("list.do")
     @ResponseBody
-    public ServerResponse<CartVo> list(HttpSession httpSession, Integer count, Integer productId){
+    public ServerResponse<CartVo> list(HttpSession httpSession){
         User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
         if (user == null){
             return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
