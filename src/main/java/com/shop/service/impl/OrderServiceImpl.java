@@ -12,13 +12,17 @@ import com.alipay.demo.trade.service.impl.AlipayTradeServiceImpl;
 import com.alipay.demo.trade.utils.ZxingUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.shop.common.Const;
 import com.shop.common.ServerResponse;
 import com.shop.dao.OrderItemMapper;
 import com.shop.dao.OrderMapper;
+import com.shop.dao.PayInfoMapper;
 import com.shop.pojo.Order;
 import com.shop.pojo.OrderItem;
+import com.shop.pojo.PayInfo;
 import com.shop.service.IOrderService;
 import com.shop.util.BigDecimalUtil;
+import com.shop.util.DateTimeUtil;
 import com.shop.util.FTPUtil;
 import com.shop.util.PropertiesUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -39,12 +43,27 @@ import java.util.Map;
 @Service("iOrderService")
 public class OrderServiceImpl implements IOrderService {
 
+    private static AlipayTradeService tradeService;
+    static {
+        /** 一定要在创建AlipayTradeService之前调用Configs.init()设置默认参数
+         *  Configs会读取classpath下的zfbinfo.properties文件配置信息，如果找不到该文件则确认该文件是否在classpath目录
+         */
+        Configs.init("zfbinfo.properties");
+
+        /** 使用Configs提供的默认参数
+         *  AlipayTradeService可以使用单例或者为静态成员对象，不需要反复new
+         */
+        tradeService = new AlipayTradeServiceImpl.ClientBuilder().build();
+    }
+
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     @Autowired
     private OrderMapper orderMapper;
     @Autowired
     private OrderItemMapper orderItemMapper;
+    @Autowired
+    private PayInfoMapper payInfoMapper;
 
     public ServerResponse pay(Integer userId, Long orderNo, String path){
 
@@ -121,16 +140,6 @@ public class OrderServiceImpl implements IOrderService {
                 .setNotifyUrl(PropertiesUtil.getProperty("alipay.callback.url"))//支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置，沙箱环境设置地址：https://openhome.alipay.com/platform/appDaily.htm?tab=info
                 .setGoodsDetailList(goodsDetailList);
 
-        /** 一定要在创建AlipayTradeService之前调用Configs.init()设置默认参数
-         *  Configs会读取classpath下的zfbinfo.properties文件配置信息，如果找不到该文件则确认该文件是否在classpath目录
-         */
-        Configs.init("zfbinfo.properties");
-
-        /** 使用Configs提供的默认参数
-         *  AlipayTradeService可以使用单例或者为静态成员对象，不需要反复new
-         */
-        AlipayTradeService tradeService = new AlipayTradeServiceImpl.ClientBuilder().build();
-
         AlipayF2FPrecreateResult result = tradeService.tradePrecreate(builder);
         switch (result.getTradeStatus()) {
             case SUCCESS:
@@ -184,5 +193,50 @@ public class OrderServiceImpl implements IOrderService {
             }
             log.info("body:" + response.getBody());
         }
+    }
+
+    /**
+     * 支付宝回调 验证回调信息和添加支付信息
+     * @param params
+     * @return
+     */
+    public ServerResponse aliCallback(Map<String, String> params){
+        Long orderNo = Long.parseLong(params.get("out_trade_no"));//订单号
+        String tradeNo = params.get("trade_no");//交易号
+        String tradeStatus = params.get("trade_status");//交易状态
+        Order order = orderMapper.selectByOrderNo(orderNo);
+        if (order == null){
+            return ServerResponse.createByErrorMessage("没有此订单，回调忽略");
+        }
+        if (order.getStatus() >= Const.OrderStatusEnum.PAID.getCode()){
+            //当状态大于20是则认为是已付款，说明是重复调用，所以返回正确success让支付宝不再调用
+            return ServerResponse.createBySuccessMessage("买家已付款，重复调用");
+        }
+        if (Const.AlipayCallback.TRADE_STATUS_TRADE_SUCCESS.equals(tradeStatus)){
+            //如果交易状态是成功，则更新数据库的订单状态
+            order.setStatus(Const.OrderStatusEnum.PAID.getCode());
+            order.setPaymentTime(DateTimeUtil.strToDate(params.get("gmt_payment")));
+            orderMapper.updateByPrimaryKeySelective(order);
+        }
+        //支付宝返回交易成功或交易等待都添加此数据
+        PayInfo payInfo = new PayInfo();
+        payInfo.setUserId(order.getUserId());
+        payInfo.setOrderNo(orderNo);
+        payInfo.setPayPlatform(Const.PayPlatformEnum.ALIPAY.getCode());//交易类型：如支付宝、微信等
+        payInfo.setPlatformNumber(tradeNo);//支付宝的交易号
+        payInfo.setPlatformStatus(tradeStatus);//支付宝的交易状态
+        payInfoMapper.insert(payInfo);
+        return ServerResponse.createBySuccess();
+    }
+
+    public ServerResponse queryOrderPayStatus(Integer userId, Long orderNo){
+        Order order = orderMapper.selectByUserIdAndOrderNo(userId, orderNo);
+        if (order == null){
+            return ServerResponse.createByErrorMessage("没有此订单");
+        }
+        if (order.getStatus() >= Const.OrderStatusEnum.PAID.getCode()){
+            return ServerResponse.createBySuccess();
+        }
+        return ServerResponse.createByError();
     }
 }
