@@ -34,6 +34,36 @@ public class OrderController {
     @Autowired
     private IOrderService iOrderService;
 
+    @RequestMapping("create.do")
+    @ResponseBody
+    public ServerResponse create(HttpSession httpSession, Integer shippingId){
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+        }
+        return iOrderService.createOrder(user.getId(), shippingId);
+    }
+
+    @RequestMapping("cancel.do")
+    @ResponseBody
+    public ServerResponse cancel(HttpSession httpSession, Long orderNo){
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+        }
+        return iOrderService.cancel(user.getId(), orderNo);
+    }
+
+    @RequestMapping("get_order_cart_product.do")
+    @ResponseBody
+    public ServerResponse getOrderCartProduct(HttpSession httpSession){
+        User user = (User)httpSession.getAttribute(Const.CURRENT_USER);
+        if (user == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc());
+        }
+        return iOrderService.getOrderCartProduct(user.getId());
+    }
+
     /**
      *  支付接口
      * @param httpSession

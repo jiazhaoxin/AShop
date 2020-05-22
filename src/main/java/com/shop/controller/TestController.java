@@ -1,6 +1,8 @@
 package com.shop.controller;
 
 import com.shop.common.ServerResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -15,14 +17,21 @@ import java.util.Map;
 @RequestMapping("/test/")
 public class TestController {
 
+    private static final Logger logger = LoggerFactory.getLogger(TestController.class);
+
     @RequestMapping("test1.do")
     @ResponseBody
     public ServerResponse<Boolean> test1(Integer status){
-        if (status.intValue() == 1){
-            return ServerResponse.createBySuccess();
-        } else if (status.intValue() == 3){
-            return ServerResponse.createByErrorMessage("都是对的多");
+        try {
+            if (status.intValue() == 1){
+                return ServerResponse.createBySuccess();
+            } else if (status.intValue() == 3){
+                return ServerResponse.createByErrorMessage("都是对的多");
+            }
+        }catch (Exception e){
+            logger.error("aaaaaaa", e);
         }
+
         return ServerResponse.createByError();
     }
 
